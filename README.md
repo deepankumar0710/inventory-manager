@@ -3,7 +3,7 @@
 A Django web app for a small shop to track products, record sales, see a
 dashboard, get restock alerts and sell items by scanning barcodes.
 
-**Live demo:** _coming soon_
+**Live demo:https://inventory-manager-ulhw.onrender.com
 
 ## Features
 
