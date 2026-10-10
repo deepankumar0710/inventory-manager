@@ -1,0 +1,50 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+<div class="top">
+    <h1 style="margin:0;">Products</h1>
+    <a class="btn" href="{% url 'product_add' %}">+ Add product</a>
+</div>
+
+<div class="panel">
+    <form method="get" style="margin-bottom:14px;">
+        <input type="search" name="q" value="{{ query }}" placeholder="Search name or ID">
+        <button class="btn" type="submit">Search</button>
+        {% if query %}<a class="btn light" href="{% url 'product_list' %}">Clear</a>{% endif %}
+    </form>
+
+    <table>
+        <tr>
+            <th>ID</th><th>Name</th><th>Price</th><th>Stock</th><th>Status</th><th></th>
+        </tr>
+        {% for p in products %}
+        <tr>
+            <td>{{ p.product_id }}</td>
+            <td>{{ p.name }}</td>
+            <td>₹{{ p.price }}</td>
+            <td>{{ p.stock }}</td>
+            <td>
+                {% if p.status == "out" %}<span class="pill out">Out of stock</span>
+                {% elif p.status == "low" %}<span class="pill low">Low stock</span>
+                {% else %}<span class="pill ok">In stock</span>{% endif %}
+            </td>
+            <td style="white-space:nowrap;">
+                <a class="btn light small" href="{% url 'product_edit' p.pk %}">Edit</a>
+                <form method="post" action="{% url 'product_delete' p.pk %}" style="display:inline;"
+                      onsubmit="return confirm('Delete {{ p.name }} and all its sales?');">
+                    {% csrf_token %}
+                    <button class="btn light small" type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">
+                {% if query %}No products match "{{ query }}". Try another word or clear the search.
+                {% else %}No products yet. Click "Add product" to create the first one.{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

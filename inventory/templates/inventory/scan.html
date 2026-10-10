@@ -1,0 +1,149 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+<style>
+    .scan-msg { padding: 12px 14px; border-radius: 6px; margin-bottom: 16px;
+                font-weight: bold; max-width: 520px; }
+    .scan-msg.ok { background: #e0f3e8; color: #17703f; }
+    .scan-msg.err { background: #fbe4e2; color: #b3261e; }
+    .scan-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    #reader { max-width: 420px; margin-top: 12px; }
+    #log { padding-left: 18px; margin: 0; }
+</style>
+
+<h1 style="margin-top:0;">Scan to sell</h1>
+<p>Each scan sells <b>one unit</b> of the product that has that barcode.</p>
+
+{% csrf_token %}
+
+<div id="result" class="scan-msg" hidden></div>
+
+<div class="panel" style="max-width:520px;">
+    <h2 style="margin-top:0;">Type a barcode</h2>
+    <p>This also works with a USB barcode scanner, because it types the number for you.</p>
+    <form id="manual-form" class="scan-row">
+        <input type="text" id="manual-code" placeholder="Barcode" autocomplete="off" autofocus>
+        <button class="btn" type="submit">Sell 1</button>
+    </form>
+</div>
+
+<div class="panel" style="max-width:520px;">
+    <h2 style="margin-top:0;">Scan with the camera</h2>
+    <button class="btn" id="start-btn" type="button">Start camera</button>
+    <button class="btn light" id="stop-btn" type="button" disabled>Stop camera</button>
+    <div id="reader"></div>
+</div>
+
+<div class="panel" style="max-width:520px;">
+    <h2 style="margin-top:0;">This session</h2>
+    <ul id="log"><li data-placeholder="1">No scans yet.</li></ul>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    const sellUrl = "{% url 'scan_sell' %}";
+    const resultBox = document.getElementById("result");
+    const logList = document.getElementById("log");
+    const startBtn = document.getElementById("start-btn");
+    const stopBtn = document.getElementById("stop-btn");
+
+    let sending = false;
+
+    function showResult(ok, text) {
+        resultBox.hidden = false;
+        resultBox.className = "scan-msg " + (ok ? "ok" : "err");
+        resultBox.textContent = text;
+
+        if (logList.firstElementChild && logList.firstElementChild.dataset.placeholder) {
+            logList.innerHTML = "";
+        }
+        const item = document.createElement("li");
+        item.textContent = new Date().toLocaleTimeString() + " - " + text;
+        logList.prepend(item);
+    }
+
+    async function sellByCode(code) {
+        if (sending) return;
+        sending = true;
+        try {
+            const response = await fetch(sellUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken,
+                },
+                body: JSON.stringify({ barcode: code }),
+            });
+            const data = await response.json();
+            showResult(data.ok, data.message);
+        } catch (error) {
+            showResult(false, "Could not reach the server.");
+        } finally {
+            sending = false;
+        }
+    }
+
+    // ---- typed barcode ----
+    document.getElementById("manual-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const input = document.getElementById("manual-code");
+        const code = input.value.trim();
+        if (code) sellByCode(code);
+        input.value = "";
+        input.focus();
+    });
+
+    // ---- camera ----
+    let scanner = null;
+    let lastCode = "";
+    let lastTime = 0;
+
+    // The camera sees the same barcode many times per second.
+    // We sell only once, until the barcode has been out of view for 4 seconds.
+    function onCameraCode(code) {
+        const now = Date.now();
+        const repeated = code === lastCode && now - lastTime < 4000;
+        lastCode = code;
+        lastTime = now;
+        if (!repeated) sellByCode(code);
+    }
+
+    async function startCamera() {
+        const formats = [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+        ];
+        scanner = new Html5Qrcode("reader", { formatsToSupport: formats, verbose: false });
+        const config = { fps: 10, qrbox: { width: 300, height: 120 } };
+        try {
+            try {
+                await scanner.start({ facingMode: "environment" }, config, onCameraCode, () => {});
+            } catch (firstError) {
+                await scanner.start({ facingMode: "user" }, config, onCameraCode, () => {});
+            }
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+        } catch (error) {
+            scanner = null;
+            showResult(false, "The camera could not start. Allow camera access, or type the barcode above.");
+        }
+    }
+
+    async function stopCamera() {
+        if (!scanner) return;
+        await scanner.stop();
+        scanner.clear();
+        scanner = null;
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+    }
+
+    startBtn.addEventListener("click", startCamera);
+    stopBtn.addEventListener("click", stopCamera);
+</script>
+{% endblock %}

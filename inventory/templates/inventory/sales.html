@@ -1,0 +1,33 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+<h1 style="margin-top:0;">Sales</h1>
+
+<div class="panel" style="max-width:480px;">
+    <h2 style="margin-top:0;">Record a sale</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn" type="submit">Sell</button>
+    </form>
+</div>
+
+<div class="panel">
+    <h2 style="margin-top:0;">Recent sales</h2>
+    <table>
+        <tr>
+            <th>When</th><th>Product</th><th>Quantity</th><th>Total</th>
+        </tr>
+        {% for sale in recent_sales %}
+        <tr>
+            <td>{{ sale.date_sold|date:"d M Y, H:i" }}</td>
+            <td>{{ sale.product.name }}</td>
+            <td>{{ sale.quantity }}</td>
+            <td>₹{{ sale.total_price }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No sales yet. Record your first sale above.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+<div class="panel" style="max-width:480px;">
+    <h2>{{ title }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn" type="submit">Save</button>
+        <a class="btn light" href="{% url 'product_list' %}">Cancel</a>
+    </form>
+</div>
+{% endblock %}

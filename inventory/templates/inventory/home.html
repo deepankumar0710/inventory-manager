@@ -1,0 +1,71 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+<style>
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+             gap: 12px; margin-bottom: 16px; }
+    .card { background: white; border: 1px solid #d9e3e3; border-radius: 8px; padding: 14px; }
+    .card small { color: #5d7376; }
+    .card b { display: block; font-size: 24px; margin-top: 4px; }
+    .card b.warn { color: #b4530a; }
+    .card b.name { font-size: 18px; }
+    .bar-row { display: grid; grid-template-columns: 170px 1fr 40px; gap: 10px;
+               align-items: center; margin-bottom: 8px; font-size: 14px; }
+    .bar-track { background: #e8eeee; border-radius: 4px; height: 18px; }
+    .bar-fill { background: #0d7a80; height: 18px; border-radius: 4px; min-width: 2px; }
+    h1.page-title, h2.panel-title { margin-top: 0; }
+</style>
+
+<h1 class="page-title">Dashboard</h1>
+
+<div class="cards">
+    <div class="card">
+        <small>Products</small>
+        <b>{{ total_products }}</b>
+    </div>
+    <div class="card">
+        <small>Low or out of stock</small>
+        <b class="{% if low_stock_count %}warn{% endif %}">{{ low_stock_count }}</b>
+    </div>
+    <div class="card">
+        <small>Revenue</small>
+        <b>₹{{ revenue }}</b>
+    </div>
+    <div class="card">
+        <small>Top seller</small>
+        <b class="name">{% if top_seller %}{{ top_seller.name }}{% else %}No sales yet{% endif %}</b>
+    </div>
+</div>
+
+<div class="panel">
+    <h2 class="panel-title">Units sold per product</h2>
+    {% for row in chart %}
+    <div class="bar-row">
+        <span>{{ row.name }}</span>
+        <div class="bar-track"><div class="bar-fill" style="width: {{ row.percent }}%;"></div></div>
+        <b>{{ row.units }}</b>
+    </div>
+    {% empty %}
+    <p>No products yet. Add one on the Products page.</p>
+    {% endfor %}
+</div>
+
+<div class="panel">
+    <h2 class="panel-title">Latest sales</h2>
+    <table>
+        <tr><th>When</th><th>Product</th><th>Quantity</th><th>Total</th></tr>
+        {% for sale in recent_sales %}
+        <tr>
+            <td>{{ sale.date_sold|date:"d M Y, H:i" }}</td>
+            <td>{{ sale.product.name }}</td>
+            <td>{{ sale.quantity }}</td>
+            <td>₹{{ sale.total_price }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No sales yet. Record one on the <a href="{% url 'sales' %}">Sales page</a>.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

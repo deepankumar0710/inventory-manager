@@ -1,0 +1,42 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+<h1 class="page-title">Restock alerts</h1>
+<p>
+    A product appears here when it is out of stock, has {{ 5 }} or fewer left,
+    or is selling so fast that it will run out within a week. Sales are counted
+    over the last {{ days }} days.
+</p>
+
+<div class="panel">
+    {% if alerts %}
+    <table>
+        <tr>
+            <th>Product</th>
+            <th>In stock</th>
+            <th>Sold (last {{ days }} days)</th>
+            <th>Will last about</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+        {% for a in alerts %}
+        <tr>
+            <td>{{ a.product.name }}</td>
+            <td>{{ a.product.stock }}</td>
+            <td>{{ a.recent }}</td>
+            <td>
+                {% if a.days_left is not None %}{{ a.days_left|floatformat:1 }} days
+                {% else %}No recent sales{% endif %}
+            </td>
+            <td>
+                <span class="pill {% if a.rank == 0 %}out{% else %}low{% endif %}">{{ a.label }}</span>
+            </td>
+            <td><a class="btn light small" href="{% url 'product_edit' a.product.pk %}">Update stock</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>Nothing to restock right now. Every product has enough stock.</p>
+    {% endif %}
+</div>
+{% endblock %}

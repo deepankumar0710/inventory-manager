@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventory Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f3f6f6; color: #14282b; }
+        header { background: #0d5f63; color: white; padding: 12px 24px;
+                 display: flex; justify-content: space-between; align-items: center; }
+        header a { color: white; text-decoration: none; margin-left: 18px; }
+        header a:hover { text-decoration: underline; }
+        header button { background: white; color: #0d5f63; border: 0;
+                        padding: 6px 14px; border-radius: 4px; cursor: pointer; }
+        main { padding: 24px; }
+        .btn { background: #0d5f63; color: white; border: 0; padding: 8px 16px;
+               border-radius: 4px; cursor: pointer; text-decoration: none;
+               display: inline-block; font-size: 14px; }
+        .btn.light { background: white; color: #0d5f63; border: 1px solid #0d5f63; }
+        .btn.small { padding: 4px 10px; font-size: 13px; }
+        .panel { background: white; border: 1px solid #d9e3e3; border-radius: 8px;
+                 padding: 16px; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 9px 8px; text-align: left; border-bottom: 1px solid #d9e3e3; }
+        th { font-size: 13px; color: #5d7376; }
+        .pill { padding: 2px 9px; border-radius: 99px; font-size: 12px; font-weight: bold; }
+        .pill.ok { background: #e0f3e8; color: #17703f; }
+        .pill.low { background: #fdeede; color: #b4530a; }
+        .pill.out { background: #fbe4e2; color: #b3261e; }
+        .msg { background: #e0f3e8; color: #17703f; padding: 10px 14px;
+               border-radius: 6px; margin-bottom: 14px; }
+        .top { display: flex; justify-content: space-between; align-items: center;
+               flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+        input[type=text], input[type=number], input[type=search] {
+               padding: 8px; border: 1px solid #d9e3e3; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <header>
+        <div>
+            <strong>Inventory Manager</strong>
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'product_list' %}">Products</a>
+            <a href="{% url 'sales' %}">Sales</a>
+            <a href="{% url 'alerts' %}">Alerts</a>
+            <a href="{% url 'scan_page' %}">Scan</a>
+        </div>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Log out</button>
+        </form>
+    </header>
+    {% endif %}
+
+    <main>
+        {% for message in messages %}
+            <div class="msg">{{ message }}</div>
+        {% endfor %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
