@@ -3,7 +3,7 @@
 A Django web app for a small shop to track products, record sales, see a
 dashboard, get restock alerts and sell items by scanning barcodes.
 
-**Live demo:https://inventory-manager-ulhw.onrender.com
+**Live demo:** https://inventory-manager-ulhw.onrender.com/ (free hosting, so the first visit may take about a minute to wake up)
 
 ## Features
 
@@ -18,12 +18,12 @@ dashboard, get restock alerts and sell items by scanning barcodes.
 
 ## Tech
 
-Python 3.13, Django 6.1, SQLite, HTML/CSS, JavaScript (html5-qrcode)
+Python 3.13, Django 6.1, PostgreSQL (Neon), SQLite for local development, HTML/CSS, JavaScript (html5-qrcode). Deployed on Render.
 
 ## Run it locally
 
 ```
-git clone https://github.com/YOUR-USERNAME/inventory-manager.git
+git clone https://github.com/deepankumar0710/inventory-manager.git
 cd inventory-manager
 python -m venv venv
 venv\Scripts\activate          # Mac/Linux: source venv/bin/activate
